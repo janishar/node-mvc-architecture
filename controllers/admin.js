@@ -21,16 +21,7 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 
-router.get('/about',
-    (req, res, next) => res.sendFile(path.join(__dirname, './../view/html', 'about.html')));
-
-router.get('/post',
-    (req, res, next) => res.sendFile(path.join(__dirname, './../view/html', 'post.html')));
-
-router.get('/contact',
-    (req, res, next) => res.sendFile(path.join(__dirname, './../view/html', 'contact.html')));
-
-router.get('/',
-    (req, res, next) => res.sendFile(path.join(__dirname, './../view/html', 'index.html')));
+router.get('/blog/editor',
+    (req, res, next) => res.sendFile(path.join(__dirname, './../view', 'editor.html')));
 
 module.exports = router;

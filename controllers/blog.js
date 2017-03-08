@@ -16,16 +16,24 @@
 /**
  * Created by janisharali on 07/03/17.
  */
+
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 
-router.get('/all',
-    (req, res, next) => {
+router.get('/about',
+    (req, res, next) => res.sendFile(path.join(__dirname, './../view', 'about.html')));
 
-        var html = '';
+router.get('/post',
+    (req, res, next) => res.sendFile(path.join(__dirname, './../view', 'post.html')));
 
-        res.send(html);
-    });
+router.get('/contact',
+    (req, res, next) => res.sendFile(path.join(__dirname, './../view', 'contact.html')));
+
+router.get('/',
+    (req, res, next) => res.sendFile(path.join(__dirname, './../view', 'index.html')));
+
+module.exports = router;
 
 
 module.exports = router;

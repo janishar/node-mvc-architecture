@@ -26,22 +26,21 @@ const logger = require('morgan');
 const fs = require('fs');
 const app = express();
 
-app.use(cookieParser());
-app.use(favicon(path.join(__dirname, 'view', 'favicon.ico')));
-app.use(express.static(path.join(__dirname, 'view')));
-
-let NotFoundError = require('./helpers/error').NotFoundError;
-
-const accessLogStream = fs.createWriteStream(path.join(__dirname, './log/access.log'), {flags: 'a'});
-app.use(logger(':method :url :req[header] :res[header] :status :response-time', {"stream": accessLogStream}));
-
 if (app.get('env') === 'production') {
     global.debug = new (require('./helpers/debug'))(false);
 } else {
     global.debug = new (require('./helpers/debug'))(true);
 }
 
-global.debug = debug;
+app.use(cookieParser());
+app.use(favicon(path.join(__dirname, 'view', 'public','favicon.ico')));
+app.use('/view/public', express.static(path.join(__dirname, 'view', 'public')));
+
+
+let NotFoundError = require('./helpers/error').NotFoundError;
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, './log/access.log'), {flags: 'a'});
+app.use(logger(':method :url :req[header] :res[header] :status :response-time', {"stream": accessLogStream}));
 
 app.use(require('./controllers'));
 
@@ -54,7 +53,7 @@ app.use(function(req, res, next) {
 
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    res.sendFile(path.join(__dirname, 'view/html', 'error.html'));
+    res.sendFile(path.join(__dirname, 'view', 'error.html'));
 });
 
 module.exports = app;

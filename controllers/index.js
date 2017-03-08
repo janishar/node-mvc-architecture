@@ -23,12 +23,11 @@ const app = express();
 
 //.............................................................................................
 
-app.use('/admin', require('./../middlewares/admin_auth'));
-app.use('/admin', require('./../middlewares/admin_auth'));
-app.use('/admin/blog', require('./blog'));
+//app.use('/admin', require('./../middlewares/admin_auth'));
+app.use('/admin', require('./admin'));
 
 //..............................................................................................
 
-app.use('/', require('./page'));
+app.use('/', require('./blog'));
 
 module.exports = app;
