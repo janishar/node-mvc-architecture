@@ -1,0 +1,46 @@
+.form-login {
+    background-color: #fff;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 15px;
+    border-color:#d2d2d2;
+    border-width: 5px;
+    box-shadow:0 1px 0 #cfcfcf;
+    margin-top: 100px;
+    margin-bottom: 20px;
+}
+
+.form-control{
+    border-radius: 30px;
+}
+
+.form-login input,
+.form-login textarea {
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    padding: 20px;
+    font-size: small;
+    border-color: #222222;
+}
+
+.form-login .form-control:focus {
+    border-color: #68EFAD;
+    box-shadow: 2px;
+}
+
+.login-button{
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #222;
+    border-radius: 30px;
+}
+
+.wrapper{
+    text-align: center;
+}
+
+.invalid-form-text{
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: indianred;
+    font-size: 12px;
+}
