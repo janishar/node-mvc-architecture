@@ -21,15 +21,16 @@
 const Promise = require('bluebird');
 const Query = require('./../helpers/query');
 const Timestamp = require('./../helpers/timestamp');
-
+const QueryMap = require('./../helpers/query').QueryMap;
 const InternalError = require('./../helpers/error').InternalError;
 const NoSuchEntityExistsError = require('./../helpers/error').NoSuchEntityExistsError;
 
 class Model {
 
-    constructor(id, status, createdAt, updatedAt) {
+    constructor(tableName, id, status, createdAt, updatedAt) {
+        this._tableName = tableName;
         this._id = id;
-        this._status = (status || true);
+        this._status = status;
         this._createdAt = createdAt;
         this._updatedAt = updatedAt;
     }
@@ -43,13 +44,11 @@ class Model {
         return this;
     }
 
-    /**
-     * Call this method to get the query parameter for such queries which don't require null
-     * Most common use case is when update a model and it has id as null.
-     */
-    clean() {
+    getValues() {
         let clone = {};
         Object.assign(clone, this);
+
+        delete clone.tableName;
 
         for (const i in clone) {
             if (typeof clone[i] === 'undefined') {
@@ -60,25 +59,84 @@ class Model {
         return clone;
     }
 
-    create(sql, obj) {
-        return Query.execute(sql, obj.clean())
+    create() {
+
+        this._createdAt = new Timestamp().getYMDHMS();
+        this._updatedAt = this._createdAt;
+
+        return Query.builder(this._tableName)
+            .insert()
+            .values(this.getValues())
+            .build()
+            .execute()
             .then(result => {
-                return new Promise((resolve, reject) => {
-                    if (result.insertId === undefined) {
-                        return reject(new InternalError());
-                    }
-
-                    this._id = result.insertId;
-
-                    return resolve(obj)
-                })
+                return this.parseCreateResult(result);
             })
     }
 
-    update(sql, queryvalues) {
-        return Query.execute(sql, queryvalues)
+    update(whereAndQueryMap) {
+
+        this._updatedAt = new Timestamp().getYMDHMS();
+
+        return Query.builder(this._tableName)
+            .update()
+            .values(this.getValues())
+            .whereAndQueryMap(whereAndQueryMap)
+            .build()
+            .execute()
+            .then(result => {
+                return this.parseUpdateResult(result);
+            })
+    }
+
+    updateById(){
+        this._updatedAt = new Timestamp().getYMDHMS();
+        return this.update(new QueryMap().put('id', this._id))
+    }
+
+    remove(whereAndQueryMap) {
+        return Query.builder(this._tableName)
+            .remove()
+            .whereAndQueryMap(whereAndQueryMap)
+            .build()
+            .execute()
+            .then(result => {
+                return this.parseRemoveResult(result);
+            })
+    }
+
+    removeById(){
+        return this.remove(new QueryMap().put('id', this._id))
+    }
+
+    createInTx(connection) {
+
+        this._createdAt = new Timestamp().getYMDHMS();
+        this._updatedAt = this._createdAt;
+
+        return Query.builder(this._tableName)
+            .insert()
+            .values(this.getValues())
+            .build()
+            .executeInTx(connection)
+            .then(result => {
+                return this.parseCreateResult(result);
+            })
+    }
+
+    updateInTx(connection, whereAndQueryMap) {
+
+        this._updatedAt = new Timestamp().getYMDHMS();
+
+        return Query.builder(this._tableName)
+            .update()
+            .values(this.getValues())
+            .whereAndQueryMap(whereAndQueryMap)
+            .build()
+            .executeInTx(connection)
             .then(result => {
                 return new Promise((resolve, reject) => {
+
                     if (!(result.affectedRows > 0)) {
                         return reject(new InternalError());
                     }
@@ -88,95 +146,122 @@ class Model {
             })
     }
 
-    remove(sql, queryvalues) {
-        return Query.execute(sql, queryvalues)
-            .then(result => {
-                return new Promise((resolve, reject) => {
-                    if (!(result.affectedRows > 0)) {
-                        return reject(new InternalError());
-                    }
-
-                    return resolve(true)
-                })
-            })
-    }
-
-    createInTx(connection, sql, obj) {
-        debug.log(sql);
-        return connection.queryAsync(sql, obj.clean())
-            .then(result => {
-                return new Promise((resolve, reject) => {
-                    if (result.insertId === undefined) {
-                        return reject(new InternalError());
-                    }
-
-                    this._id = result.insertId;
-
-                    resolve(obj)
-                });
-            })
-    }
-
-    updateInTx(connection, sql, queryvalues) {
-        return connection.queryAsync(sql, queryvalues)
-            .then(result => {
-                return new Promise((resolve, reject) => {
-                    if (!(result.affectedRows > 0)) {
-                        return reject(new InternalError());
-                    }
-
-                    return resolve(this)
-                })
-            })
-    }
-
-
-    static get(sql, queryvalues, Class, errMsg) {
-        return Query.execute(sql, queryvalues)
+    getOne(whereAndQueryMap) {
+        return Query.builder(this._tableName)
+            .select()
+            .whereAndQueryMap(whereAndQueryMap)
+            .limit(1)
+            .build()
+            .execute()
             .then(results => {
-                return new Promise((resolve, reject) => {
-                    if (results[0] === undefined) {
-                        return reject(new NoSuchEntityExistsError(errMsg));
-                    }
-
-                    return resolve(new Class().copy(results[0]))
-                })
+                return this.parseGetResultsForOne(results)
             })
     }
 
-    static getAll(sql, queryvalues, Class, errMsg) {
-        return Query.execute(sql, queryvalues)
+    getById(id){
+        return this.getOne(new QueryMap().put('id', id), this)
+    }
+
+    getAll(whereAndQueryMap) {
+
+        return Query.builder(this._tableName)
+            .select()
+            .whereAndQueryMap(whereAndQueryMap)
+            .build()
+            .execute()
             .then(results => {
-                return new Promise((resolve, reject) => {
-                    if (results[0] === undefined) {
-                        return reject(new NoSuchEntityExistsError(errMsg));
-                    }
-
-                    let array = [];
-
-                    for (let i = 0; i < results.length; i++) {
-                        array.push(new Class().copy(results[i]))
-                    }
-
-                    return resolve(array)
-                })
+                return this.parseGetResults(results);
             })
     }
 
-    static batchInsert(sql, values) {
-        debug.log(sql);
-        return Query.executeInTx(connection => {
-            return connection.queryAsync(sql, values)
-                .then(result => {
-                    return new Promise((resolve, reject) => {
-                        if (!(result.affectedRows > 0)) {
-                            return reject(new InternalError());
-                        }
+    getAsPage(offset, count) {
+        return super.getPaginated(offset, count, new QueryMap().put('status', 1));
+    }
 
-                        return resolve(true)
-                    })
-                }).catch(err => {debug.logAsJSON(err); throw err})
-        });
+    /**
+     *  offset starts from 0 for the api:
+     *  it specifies the rows to fetch after x rows
+     *  count specifies the number of rows to fetch from the offset
+     */
+    getPaginated(offset, count, whereAndQueryMap) {
+
+        return Query.builder(this._tableName)
+            .select()
+            .whereAndQueryMap(whereAndQueryMap)
+            .limit(count, offset)
+            .build()
+            .execute()
+            .then(results => {
+                this.parseGetResults(results)
+            })
+    }
+
+    parseCreateResult(result){
+        return new Promise((resolve, reject) => {
+
+            if (result.insertId === undefined || result.insertId === null) {
+                return reject(new InternalError());
+            }
+
+            this._id = result.insertId;
+
+            return resolve(this)
+        })
+    }
+
+    parseUpdateResult(result){
+        return new Promise((resolve, reject) => {
+
+            if (!(result.affectedRows > 0)) {
+                return reject(new InternalError());
+            }
+
+            return resolve(this)
+        })
+    }
+
+    parseRemoveResult(result){
+        return new Promise((resolve, reject) => {
+
+            if (!(result.affectedRows > 0)) {
+                return reject(new InternalError());
+            }
+
+            return resolve(true)
+        })
+    }
+
+    parseGetResults(results){
+        return new Promise((resolve, reject) => {
+            if (results[0] === undefined) {
+                return reject(new NoSuchEntityExistsError());
+            }
+
+            let array = [];
+
+            for (let i = 0; i < results.length; i++) {
+                array.push(new this.constructor().copy(results[i]))
+            }
+
+            return resolve(array)
+        })
+    }
+
+    parseGetResultsForOne(results){
+        return new Promise((resolve, reject) => {
+            if (results[0] === undefined) {
+                return reject(new NoSuchEntityExistsError());
+            }
+            return resolve(new this.constructor().copy(results[0]));
+        })
+    }
+
+    get _tableName() {
+        return this.tableName
+    }
+
+    set _tableName(tableName) {
+        this.tableName = tableName;
     }
 
     get _id() {

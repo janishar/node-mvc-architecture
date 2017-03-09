@@ -17,6 +17,7 @@
  * Created by janisharali on 06/03/16.
  */
 const Model = require('./model');
+const QueryMap = require('./../helpers/query').QueryMap;
 const AdminError = require('./../helpers/error').AdminError;
 
 class Admin extends Model {
@@ -39,10 +40,8 @@ class Admin extends Model {
         return this;
     }
 
-    static get(adminId) {
-        let sql = "SELECT * FROM admins WHERE admin_id = ?";
-
-        return super.get(sql, adminId, this, "Admin do not exists")
+    getOne(adminId) {
+        return super.getOne(new QueryMap().put('admin_id', adminId))
             .catch(err => {
                 throw  new AdminError("Admin do not exists", 401)
             });
