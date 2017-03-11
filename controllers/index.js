@@ -21,13 +21,15 @@
 const express = require('express');
 const app = express();
 
+app.use('/', require('./blog'));
+app.use('/login', require('./login'));
+
 //.............................................................................................
 
-//app.use('/admin', require('./../middlewares/admin_auth'));
-app.use('/admin', require('./admin'));
+app.use('/user', require('./../middlewares/user_auth'));
+app.use('/user', require('./user'));
 
 //..............................................................................................
 
-app.use('/', require('./blog'));
 
 module.exports = app;

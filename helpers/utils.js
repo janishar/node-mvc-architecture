@@ -18,6 +18,9 @@
  */
 'use strict';
 
+const crypto = require('crypto');
+const config = require('./../config');
+
 class Utils{
 
     static arrayContains(arr, val){
@@ -46,6 +49,23 @@ class Utils{
         }
 
         return indexOf.call(arr, val) > -1;
+    }
+
+    static encryptPasswordWithSalt(...payloads){
+
+        let encryptingData;
+
+        for(let payload of payloads){
+            encryptingData += payloads
+        }
+
+        encryptingData += config.md5_salt;
+
+        return crypto.createHash('md5').update(encryptingData).digest("hex");
+    }
+
+    static generateTokenKey(){
+        return crypto.randomBytes(64).toString('hex')
     }
 }
 

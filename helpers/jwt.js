@@ -59,7 +59,7 @@ class JWT {
     }
 
     static readAuthKey() {
-        return fs.readFileAsync(path.join(__dirname, './../../authkey.pem'))
+        return fs.readFileAsync(path.join(__dirname, './../authkey.pem'))
     }
 
     encode() {

@@ -142,7 +142,7 @@ class InvalidJwtTokenError extends CustomError {
 class AdminError extends CustomError {
     constructor(message, status) {
         super("AdminError", message);
-        this._status = status;
+        this._status = (status || 401);
     }
 
     get _status(){

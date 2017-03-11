@@ -59,7 +59,7 @@ class AccessTokenErrorResponse extends Response {
     }
 
     send(res) {
-        res.setHeader("instruction", "refresh_token");
+        //res.setHeader("instruction", "refresh_token");
         res.status(401).json(this.getResObj());
     }
 }
@@ -180,12 +180,11 @@ class SuccessResponse extends Response {
 
 class LoginResponse extends Response {
 
-    constructor(message, user, accessToken, refreshToken) {
+    constructor(message, user, accessToken) {
         super('success', message);
 
         this._user = user;
         this._accessToken = accessToken;
-        this._refreshToken = refreshToken;
     }
 
     get _user() {
@@ -204,20 +203,11 @@ class LoginResponse extends Response {
         this.accessToken = accessToken;
     }
 
-    get _refreshToken() {
-        return this.refreshToken;
-    }
-
-    set _refreshToken(refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
     getResObj() {
         return {
             status_code: this._statusCode,
             user_id: this._user._id,
             access_token: this._accessToken,
-            refresh_token: this._refreshToken,
             user_name: this._user._name,
             email: this._user._email,
             google_profile_pic_url: this._user._googleProfilePic,
@@ -318,6 +308,65 @@ class SuccessResponseWithoutData extends Response {
     }
 }
 
+class AdminSuccessResponseWithoutData extends Response {
+
+    constructor(message) {
+        super('success', message);
+    }
+
+    send(res) {
+        res.status(200).json(this.getResObj());
+    }
+}
+
+class AdminSuccessResponse extends Response {
+
+    constructor(message, data) {
+        super('success', message);
+        this._data = data;
+    }
+
+    set _data(data) {
+        this.data = data;
+    }
+
+    get _data() {
+        return this.data;
+    }
+
+    send(res) {
+        res.status(200).json(this.getResObj());
+    }
+
+    getResObj() {
+        return {
+            status_code: this._statusCode,
+            message: this._message,
+            data: this._data
+        };
+    }
+}
+
+class AdminErrorResponse extends Response {
+
+    constructor(message, status) {
+        super('failed', message);
+        this._status = (status || 400);
+    }
+
+    set _status(status) {
+        this.status = status;
+    }
+
+    get _status() {
+        return this.status;
+    }
+
+    send(res) {
+        res.status(this._status).json(this.getResObj());
+    }
+}
+
 module.exports = Response;
 module.exports.AccessTokenErrorResponse = AccessTokenErrorResponse;
 module.exports.AuthFailureResponse = AuthFailureResponse;
@@ -331,3 +380,6 @@ module.exports.TokenRefreshResponse = TokenRefreshResponse;
 module.exports.LanguageCorrectionResponse = LanguageCorrectionResponse;
 module.exports.SuccessResponseWithoutData = SuccessResponseWithoutData;
 module.exports.BadRequestResponse = BadRequestResponse;
+module.exports.AdminSuccessResponseWithoutData = AdminSuccessResponseWithoutData;
+module.exports.AdminSuccessResponse = AdminSuccessResponse;
+module.exports.AdminErrorResponse = AdminErrorResponse;

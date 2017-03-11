@@ -26,14 +26,18 @@ const logger = require('morgan');
 const fs = require('fs');
 const app = express();
 
+global.fileLog = new (require('./helpers/file_log'))(LOG_REQ, LOG_RES, LOG_ERR);
+
 if (app.get('env') === 'production') {
     global.debug = new (require('./helpers/debug'))(false);
 } else {
     global.debug = new (require('./helpers/debug'))(true);
 }
 
+const CustomError = require('./helpers/error');
+
 app.use(cookieParser());
-app.use(favicon(path.join(__dirname, 'view', 'public','favicon.ico')));
+app.use(favicon(path.join(__dirname, 'view', 'public', 'favicon.ico')));
 app.use('/view/public', express.static(path.join(__dirname, 'view', 'public')));
 
 
@@ -45,15 +49,22 @@ app.use(logger(':method :url :req[header] :res[header] :status :response-time', 
 app.use(require('./controllers'));
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
     var err = new NotFoundError();
     err.status = 404;
     next(err);
 });
 
-app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.sendFile(path.join(__dirname, 'view', 'error.html'));
+app.use(function (err, req, res, next) {
+
+    //if (err instanceof CustomError) {
+    //    CustomError.handle(err, res)
+    //} else {
+    //    res.status(err.status || 500);
+    //    res.sendFile(path.join(__dirname, 'view', 'error.html'));
+    //}
+
+    CustomError.handle(err, res)
 });
 
 module.exports = app;
