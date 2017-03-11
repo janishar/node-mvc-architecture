@@ -21,12 +21,13 @@
 const express = require('express');
 const app = express();
 
-app.use('/', require('./blog'));
+app.use('/', require('./pages'));
 app.use('/login', require('./login'));
 
 //.............................................................................................
 
 app.use('/user', require('./../middlewares/web_auth'));
+app.use('/user/blog', require('./blogs'));
 app.use('/user', require('./user'));
 
 //..............................................................................................

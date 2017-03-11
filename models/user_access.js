@@ -56,7 +56,7 @@ class UserAccess extends Model {
     }
 
     set _userId(userId) {
-        return this.user_id = userId;
+        this.user_id = userId;
     }
 
     get _accessTokenKey() {
@@ -64,7 +64,7 @@ class UserAccess extends Model {
     }
 
     set _accessTokenKey(accessTokenKey) {
-        return this.access_token_key = accessTokenKey;
+        this.access_token_key = accessTokenKey;
     }
 }
 

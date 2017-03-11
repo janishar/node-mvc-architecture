@@ -57,14 +57,12 @@ app.use(function (req, res, next) {
 
 app.use(function (err, req, res, next) {
 
-    //if (err instanceof CustomError) {
-    //    CustomError.handle(err, res)
-    //} else {
-    //    res.status(err.status || 500);
-    //    res.sendFile(path.join(__dirname, 'view', 'error.html'));
-    //}
-
-    CustomError.handle(err, res)
+    if (err instanceof CustomError) {
+        CustomError.handle(err, res)
+    } else {
+        res.status(err.status || 500);
+        res.sendFile(path.join(__dirname, 'view', 'error.html'));
+    }
 });
 
 module.exports = app;

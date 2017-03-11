@@ -2,3 +2,21 @@
     margin-top: 80px;
     min-height: 450px;
 }
+
+.content{
+    padding: 10px;
+}
+
+.button-save{
+    width: 100%;
+    color: white;
+    background-color: #333333;
+}
+
+button {
+    color: #333333;
+}
+button:hover,
+button:focus {
+    color: #0085A1;
+}

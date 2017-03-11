@@ -20,6 +20,7 @@
 
 const crypto = require('crypto');
 const config = require('./../config');
+const TimeStamp = require('./timestamp');
 
 class Utils{
 
@@ -66,6 +67,18 @@ class Utils{
 
     static generateTokenKey(){
         return crypto.randomBytes(64).toString('hex')
+    }
+
+    static generateBlogUrl(blogName){
+        return blogName + '-' + new Buffer(new TimeStamp().getYMDHMS()).toString('base64');
+    }
+
+    static removeSpacesWithDashAndLowerCase(str){
+        return str.replace(/\s+/g, '-').toLowerCase();
+    }
+
+    static getBlogDescription(text){
+        return text.replace(/(([^\s]+\s\s*){50})(.*)/,"$1…");
     }
 }
 

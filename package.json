@@ -16,6 +16,7 @@
     "mysql": "^2.11.1",
     "promise": "^7.1.1",
     "serve-favicon": "~2.3.0",
+    "striptags": "^3.0.1",
     "validator": "^6.2.0"
   }
 }

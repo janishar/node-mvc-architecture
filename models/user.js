@@ -99,7 +99,7 @@ class User extends Model {
     }
 
     set _name(name) {
-        return this.name = name;
+        this.name = name;
     }
 
     get _email() {
@@ -107,7 +107,7 @@ class User extends Model {
     }
 
     set _email(email) {
-        return this.email = email;
+        this.email = email;
     }
 
     get _password() {
@@ -115,7 +115,7 @@ class User extends Model {
     }
 
     set _password(password) {
-        return this.pwd = password;
+        this.pwd = password;
     }
 
     get _dob() {
@@ -123,7 +123,7 @@ class User extends Model {
     }
 
     set _dob(dob) {
-        return this.dob = dob;
+        this.dob = dob;
     }
 
     get _phone() {
@@ -131,7 +131,7 @@ class User extends Model {
     }
 
     set _phone(phone) {
-        return this.mob_num = phone;
+        this.mob_num = phone;
     }
 
     get _googleId() {
@@ -139,7 +139,7 @@ class User extends Model {
     }
 
     set _googleId(googleId) {
-        return this.google_id = googleId;
+        this.google_id = googleId;
     }
 
     get _fbId() {
@@ -147,7 +147,7 @@ class User extends Model {
     }
 
     set _fbId(fbId) {
-        return this.fb_id = fbId;
+        this.fb_id = fbId;
     }
 
     get _isEmailVerified() {
@@ -155,7 +155,7 @@ class User extends Model {
     }
 
     set _isEmailVerified(isEmailVerified) {
-        return this.email_verification_status = isEmailVerified;
+        this.email_verification_status = isEmailVerified;
     }
 
     get _googleProfilePic() {
@@ -163,7 +163,7 @@ class User extends Model {
     }
 
     set _googleProfilePic(googleProfilePic) {
-        return this.google_profile_pic = googleProfilePic;
+        this.google_profile_pic = googleProfilePic;
     }
 
     get _fbProfilePic() {
@@ -171,7 +171,7 @@ class User extends Model {
     }
 
     set _fbProfilePic(fbProfilePic) {
-        return this.fb_profile_pic = fbProfilePic;
+        this.fb_profile_pic = fbProfilePic;
     }
 }
 
