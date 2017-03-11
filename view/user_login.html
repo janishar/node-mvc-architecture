@@ -15,7 +15,7 @@
 
     <!-- Theme CSS -->
     <link href="/view/public/css/clean-blog.min.css" rel="stylesheet">
-    <link href="/view/public/css/admin-login.css" rel="stylesheet">
+    <link href="/view/public/css/user-login.css" rel="stylesheet">
 
     <!-- Custom Fonts -->
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
@@ -76,23 +76,23 @@
         <div class="row">
             <div class="col-lg-8">
                 <div class="site-heading">
-                    <h1>Admin</h1>
+                    <h1>User</h1>
                     <hr class="small">
                     <span class="subheading">Login to access the editor.</span>
                 </div>
             </div>
 
             <div class="col-lg-4">
-                <form name="adminLogin" id="adminLoginForm" novalidate>
+                <form name="userLogin" id="userLoginForm" novalidate>
                     <div class="form-login" >
-                        <h4>Admin Credentials.</h4>
+                        <h4>Login Credentials.</h4>
                         <br>
                         <div class="form-group">
-                            <input type="text" id="adminId" class="form-control input-sm chat-input" placeholder="username" required data-validation-required-message="Please enter your id."/>
+                            <input type="email" id="userEmail" class="form-control input-sm chat-input" placeholder="email" required data-validation-required-message="Please enter your email."/>
                             <p class="help-block invalid-form-text"></p>
                         </div>
                         <div class="form-group">
-                            <input type="password" id="adminPassword" class="form-control input-sm chat-input" placeholder="password" required data-validation-required-message="Please enter your password."/>
+                            <input type="password" id="userPassword" class="form-control input-sm chat-input" placeholder="password" required data-validation-required-message="Please enter your password."/>
                             <p class="help-block invalid-form-text"></p>
                         </div>
                         <br>
@@ -153,7 +153,10 @@
 
 <!-- Login Form JavaScript -->
 <script src="/view/public/js/jqBootstrapValidation.js"></script>
-<script src="/view/public/js/admin.js"></script>
+<script src="/view/public/js/user_login.js"></script>
+
+<!--Cookie-->
+<script src="/view/public/js/cookie.js"></script>
 
 <!-- Theme JavaScript -->
 <script src="/view/public/js/clean-blog.min.js"></script>

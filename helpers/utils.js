@@ -53,7 +53,7 @@ class Utils{
 
     static encryptPasswordWithSalt(...payloads){
 
-        let encryptingData;
+        let encryptingData = "";
 
         for(let payload of payloads){
             encryptingData += payloads

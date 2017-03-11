@@ -21,10 +21,8 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 
-router.get('/editor',
+router.get('/:user',
     (req, res, next) => res.sendFile(path.join(__dirname, './../view', 'editor.html')));
 
-router.post('/editor',
-    (req, res, next) => res.send("ali is here"));
 
 module.exports = router;

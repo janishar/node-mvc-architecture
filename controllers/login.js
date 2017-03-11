@@ -21,6 +21,7 @@ const User = require('./../models/user');
 const UserAccess = require('./../models/user_access');
 const BadRequestResponse = require('./../helpers/response').BadRequestResponse;
 const LoginResponse = require('./../helpers/response').LoginResponse;
+const AuthFailureError = require('./../helpers/error').AuthFailureError;
 const express = require('express');
 const router = express.Router();
 
@@ -55,10 +56,14 @@ router.post('/',
     },
     (req, res, next) => {
 
-        let password = Utils.encryptPasswordWithSalt(req.body.email, req.body.password);
+        let password = Utils.encryptPasswordWithSalt(req.body.password);
 
         new User().getByEmail(req.body.email)
             .then(user => {
+
+                if(user._password !== password){
+                    throw new AuthFailureError("Email/password is wrong");
+                }
 
                 req.user = user;
 
@@ -67,6 +72,7 @@ router.post('/',
                 return new UserAccess(user._id, req.accessTokenKey).update()
             })
             .then(userAccess => {
+
                 return JWT.builder()
                     .payload(
                         parseInt(userAccess._userId),

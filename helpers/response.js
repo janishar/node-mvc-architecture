@@ -212,7 +212,8 @@ class LoginResponse extends Response {
             email: this._user._email,
             google_profile_pic_url: this._user._googleProfilePic,
             fb_profile_pic_url: this._user._fbProfilePic,
-            message: this._message
+            message: this._message,
+            redirect_url: "/user/" + this._user._email +"/"
         };
     }
 
@@ -367,6 +368,25 @@ class AdminErrorResponse extends Response {
     }
 }
 
+class FailureRedirectResponse {
+
+    constructor(url) {
+        this._url = "/";
+    }
+
+    set _url(url) {
+        this.url = url;
+    }
+
+    get _url() {
+        return this.url;
+    }
+
+    send(res) {
+        res.redirect(this._url);
+    }
+}
+
 module.exports = Response;
 module.exports.AccessTokenErrorResponse = AccessTokenErrorResponse;
 module.exports.AuthFailureResponse = AuthFailureResponse;
@@ -383,3 +403,4 @@ module.exports.BadRequestResponse = BadRequestResponse;
 module.exports.AdminSuccessResponseWithoutData = AdminSuccessResponseWithoutData;
 module.exports.AdminSuccessResponse = AdminSuccessResponse;
 module.exports.AdminErrorResponse = AdminErrorResponse;
+module.exports.FailureRedirectResponse = FailureRedirectResponse;
