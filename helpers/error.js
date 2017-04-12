@@ -71,8 +71,14 @@ class CustomError extends Error {
             case "AdminError":
                 return new Response.AdminErrorResponse(err._message, err._status).send(res);
         }
+
+        let message = err.message;
+
+        if (NODE_ENV === 'production') {
+            message = 'Something wrong happened.'
+        }
         // getter is not used to access the variable because there can be not defined error being thrown
-        return new Response.CustomErrorResponse(err.statusCode, err.message).send(res, err.status);
+        return new Response.CustomErrorResponse(err.statusCode, message).send(res, err.status);
     }
 }
 

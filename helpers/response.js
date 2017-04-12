@@ -213,7 +213,7 @@ class LoginResponse extends Response {
             google_profile_pic_url: this._user._googleProfilePic,
             fb_profile_pic_url: this._user._fbProfilePic,
             message: this._message,
-            redirect_url: "/user/" + this._user._email +"/"
+            redirect_url: "/user/" + this._user._email +"/editor"
         };
     }
 

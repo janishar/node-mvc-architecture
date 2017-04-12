@@ -57,7 +57,8 @@ app.use(function (req, res, next) {
 
 app.use(function (err, req, res, next) {
 
-    if (err instanceof CustomError) {
+    if (err instanceof CustomError
+        && !(err instanceof NotFoundError)) {
         CustomError.handle(err, res)
     } else {
         res.status(err.status || 500);

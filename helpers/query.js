@@ -19,7 +19,9 @@
 'use strict';
 
 const Promise = require('bluebird');
-let InternalError = require('./error').InternalError;
+const mysql = require("mysql");
+const Utils = require('./utils');
+const InternalError = require('./error').InternalError;
 
 Promise.promisifyAll(require("mysql/lib/Connection").prototype);
 Promise.promisifyAll(require("mysql/lib/Pool").prototype);
@@ -75,9 +77,35 @@ class Query {
             })
     };
 
+    /**
+     * Only use this to run the server script.
+     * It is prone to SQL injection otherwise
+     */
+    static executeScript(sql, data) {
+        return new Promise((resolve, reject) => {
+
+            let config = Utils.cloneObject(DB_CONFIG);
+            config.multipleStatements = true;
+
+            const connection = mysql.createConnection(config);
+            connection.query(sql, data, (err, result) => {
+                connection.destroy();
+                if (err) {
+                    return reject(err);
+                } else {
+                    return resolve(result)
+                }
+            });
+        })
+
+    }
+
     static transaction(fn) {
         return Promise.using(DB_POOL.getConnectionAsync(), connection => {
             let tx = connection.beginTransactionAsync();
+
+            debug.log();
+
             return fn(connection)
                 .then(
                     res => {
@@ -85,9 +113,9 @@ class Query {
                         return connection.commitAsync().thenReturn(res);
                     },
                     err => {
-                        debug.log(err);
+                        debug.log('rollback');
                         return connection.rollbackAsync()
-                            .catch(e => debug.log(e))
+                            .catch(e => debug.log('rollback error', e))
                             .thenThrow(new InternalError());
                     })
                 .finally(() => connection.release())
@@ -136,13 +164,13 @@ class QueryBuilder {
         return this;
     }
 
-    select(queryMap) {
+    select(querySet) {
 
-        this._queryString = 'SELECT ';
+        this._queryString += 'SELECT ';
 
-        if (queryMap === undefined
-            || queryMap === null
-            || !(queryMap instanceof QueryMap)) {
+        if (querySet === undefined
+            || querySet === null
+            || !(querySet instanceof QuerySet)) {
 
             this._queryString += '* ';
         }
@@ -150,20 +178,71 @@ class QueryBuilder {
 
             let count = 0;
 
-            for (var [key, value] of queryMap.entries()) {
+            for (let value of querySet.values()) {
 
                 count++;
+                this._queryString += value;
 
-                this._queryString += key;
-                this.values(value);
-
-                if (count < queryMap.size()) {
+                if (count < querySet.size()) {
                     this._queryString += ', ';
+                } else {
+                    this._queryString += ' ';
                 }
             }
         }
 
         this._queryString += 'FROM ' + this._tableName + ' ';
+        return this;
+    }
+
+    selectColumns(querySet) {
+
+        this._queryString += 'SELECT ';
+
+        if (querySet === undefined
+            || querySet === null
+            || !(querySet instanceof QuerySet)) {
+
+            this._queryString += '* ';
+        }
+        else {
+
+            let count = 0;
+
+            for (let value of querySet.values()) {
+
+                count++;
+                this._queryString += value;
+
+                if (count < querySet.size()) {
+                    this._queryString += ', ';
+                } else {
+                    this._queryString += ' ';
+                }
+            }
+        }
+
+        this._queryString += 'FROM ';
+        return this;
+    }
+
+    subQueryStart() {
+        this._queryString += '( ';
+        return this;
+    }
+
+    subQueryEnd(aliasName) {
+
+        if (aliasName !== undefined && aliasName !== null) {
+            this._queryString += ') AS ' + aliasName + ' ';
+        } else {
+            this._queryString += ') ';
+        }
+        return this;
+    }
+
+    sqlText(text) {
+        this._queryString += text + ' ';
         return this;
     }
 
@@ -198,37 +277,37 @@ class QueryBuilder {
     }
 
     equal(value) {
-        this._queryString += '= ? ';
+        this._queryString += ' = ? ';
         this.values(value);
         return this
     }
 
     greater(value) {
-        this._queryString += '> ? ';
+        this._queryString += ' > ? ';
         this.values(value);
         return this
     }
 
     lesser(value) {
-        this._queryString += '< ? ';
+        this._queryString += ' < ? ';
         this.values(value);
         return this
     }
 
     equalOrGreater(value) {
-        this._queryString += '>= ? ';
+        this._queryString += ' >= ? ';
         this.values(value);
         return this
     }
 
     equalOrLesser(value) {
-        this._queryString += '=< ? ';
+        this._queryString += ' =< ? ';
         this.values(value);
         return this
     }
 
     notEqual(value) {
-        this._queryString += '>< ? ';
+        this._queryString += ' >< ? ';
         this.values(value);
         return this
     }
@@ -288,7 +367,7 @@ class QueryBuilder {
     and(columnName, value) {
 
         this._queryString += 'AND ';
-        this._queryString += columnName + '= ? ';
+        this._queryString += columnName + ' = ? ';
         this.values(value);
         return this
     }
@@ -303,7 +382,7 @@ class QueryBuilder {
     or(columnName, value) {
 
         this._queryString += 'OR ';
-        this._queryString += columnName + '= ? ';
+        this._queryString += columnName + ' = ? ';
         this.values(value);
         return this
     }
@@ -334,6 +413,70 @@ class QueryBuilder {
         }
 
         this._queryString += count + ' ';
+        return this
+    }
+
+    innerJoin(joinTableName) {
+        this._queryString += 'INNER JOIN ' + joinTableName + ' ';
+        return this
+    }
+
+    leftJoin(joinTableName) {
+        this._queryString += 'LEFT JOIN ' + joinTableName + ' ';
+        return this
+    }
+
+    rightJoin(joinTableName) {
+        this._queryString += 'RIGHT JOIN ' + joinTableName + ' ';
+        return this
+    }
+
+    fullJoin(joinTableName) {
+        this._queryString += 'FULL JOIN ' + joinTableName + ' ';
+        return this
+    }
+
+    crossJoin(joinTableName) {
+        this._queryString += 'CROSS JOIN ' + joinTableName + ' ';
+        return this
+    }
+
+    on(firstTableColumn, secondTableColumn) {
+        this._queryString += 'ON ' + firstTableColumn + ' = ' + secondTableColumn + ' ';
+        return this
+    }
+
+    groupBy(querySet) {
+
+        if (querySet !== undefined
+            || querySet !== null
+            || querySet instanceof QuerySet) {
+
+            this._queryString += 'GROUP BY ';
+            let count = 0;
+
+            for (let value of querySet.values()) {
+
+                count++;
+                this._queryString += value;
+
+                if (count < querySet.size()) {
+                    this._queryString += ', ';
+                } else {
+                    this._queryString += ' ';
+                }
+            }
+        }
+        return this;
+    }
+
+    union() {
+        this._queryString += 'UNION ';
+        return this
+    }
+
+    unionAll() {
+        this._queryString += 'UNION ALL ';
         return this
     }
 
@@ -392,7 +535,7 @@ class QueryMap {
     }
 
     size() {
-        return this._map.size();
+        return this._map.size;
     }
 
     entries() {
@@ -400,6 +543,47 @@ class QueryMap {
     }
 }
 
+class QuerySet {
+
+    constructor() {
+        this.set = new Set();
+    }
+
+    get _set() {
+        return this.set;
+    }
+
+    set _set(set) {
+        return this.set = set;
+    }
+
+    add(value) {
+        this._set.add(value);
+        return this;
+    }
+
+    contains(value) {
+        return this._set.has(value);
+    }
+
+    remove(value) {
+        return this._set.delete(value);
+    }
+
+    clear() {
+        return this._set.clear();
+    }
+
+    values() {
+        return this._set.values();
+    }
+
+    size() {
+        return this._set.size;
+    }
+}
+
 module.exports = Query;
 module.exports.QueryBuilder = QueryBuilder;
 module.exports.QueryMap = QueryMap;
+module.exports.QuerySet = QuerySet;

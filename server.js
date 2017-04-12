@@ -30,6 +30,7 @@ const expressValidator = require('express-validator');
 const app = express();
 const http = require('http').Server(app);
 
+global.NODE_ENV = app.get('env');
 global.LOG_ERR = true;
 global.LOG_RES = true;
 global.LOG_REQ = true;
@@ -38,15 +39,18 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(expressValidator());
 
-global.DB_POOL = mysql.createPool({
+global.DB_CONFIG = {
     host: config.database.host,
     user: config.database.user,
     password: config.database.pwd,
     database: config.database.db,
-    connectionLimit: 25,
+    connectionLimit: 5,
     supportBigNumbers: true
-});
+};
+
+global.DB_POOL = mysql.createPool(DB_CONFIG);
 
 app.set('port', process.env.PORT || config.port);
-app.use(require('./routes.js'));
 http.listen(app.get('port'));
+
+app.use(require('./routes.js'));
